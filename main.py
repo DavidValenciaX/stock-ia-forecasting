@@ -10,19 +10,19 @@ import pandas as pd
 from prophet import Prophet
 from scheduler import start_scheduler
 
-app = FastAPI()
-
-@app.on_event("startup")
-def on_startup():
-    """Start the scheduler on application startup."""
+async def lifespan(app):
+    """Handle application startup and shutdown events."""
+    # Start the scheduler on startup
     start_scheduler(app)
-
-@app.on_event("shutdown")
-def on_shutdown():
-    """Shutdown the scheduler on application shutdown."""
+    
+    yield  # Wait for shutdown
+    
+    # Shutdown the scheduler on shutdown
     scheduler = getattr(app.state, "scheduler", None)
     if scheduler and scheduler.running:
         scheduler.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 
 # Modelos Pydantic
 class SaleItem(BaseModel):
