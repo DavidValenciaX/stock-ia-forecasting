@@ -14,10 +14,12 @@ app = FastAPI()
 
 @app.lifespan("startup")
 def on_startup():
+    """Start the scheduler on application startup."""
     start_scheduler(app)
 
 @app.lifespan("shutdown")
 def on_shutdown():
+    """Shutdown the scheduler on application shutdown."""
     scheduler = getattr(app.state, "scheduler", None)
     if scheduler and scheduler.running:
         scheduler.shutdown()
@@ -34,6 +36,7 @@ class ProductRequest(BaseModel):
 
 @app.post("/predict-shortage")
 def predict_shortage(request: ProductRequest):
+    """Predict stock shortage for a single product."""
     colombia_tz = pytz.timezone('America/Bogota')
     current_date = datetime.now(colombia_tz).date()
 
@@ -153,6 +156,7 @@ class MultipleProductRequest(BaseModel):
 
 @app.post("/predict-multiple-shortages")
 async def predict_multiple_shortages(request: MultipleProductRequest):
+    """Predict stock shortages for multiple products."""
     return {
         "status": "success",
         "message": "Predicciones generadas",
