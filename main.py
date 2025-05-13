@@ -1,20 +1,22 @@
-from fastapi import FastAPI
-from scheduler import start_scheduler
-from pydantic import BaseModel
-from typing import List
-import pandas as pd
-from prophet import Prophet
+"""Stock shortage prediction API for inventory management and forecasting."""
+
 import math
 from datetime import datetime, timedelta
+from typing import List
 import pytz
+from fastapi import FastAPI
+from pydantic import BaseModel
+import pandas as pd
+from prophet import Prophet
+from scheduler import start_scheduler
 
 app = FastAPI()
 
-@app.on_event("startup")
+@app.lifespan("startup")
 def on_startup():
     start_scheduler(app)
 
-@app.on_event("shutdown")
+@app.lifespan("shutdown")
 def on_shutdown():
     scheduler = getattr(app.state, "scheduler", None)
     if scheduler and scheduler.running:
