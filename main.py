@@ -12,12 +12,12 @@ from scheduler import start_scheduler
 
 app = FastAPI()
 
-@app.lifespan("startup")
+@app.on_event("startup")
 def on_startup():
     """Start the scheduler on application startup."""
     start_scheduler(app)
 
-@app.lifespan("shutdown")
+@app.on_event("shutdown")
 def on_shutdown():
     """Shutdown the scheduler on application shutdown."""
     scheduler = getattr(app.state, "scheduler", None)
