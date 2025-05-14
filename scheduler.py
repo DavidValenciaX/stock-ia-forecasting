@@ -21,7 +21,7 @@ def scheduled_task():
     for product in sales_data:
         try:
             predict_response = requests.post(
-                "http://localhost:8000/predict-shortage",
+                "http://localhost:8080/predict-shortage",
                 json={
                     "product_id": product["product_id"],
                     "sales": product["sales"],

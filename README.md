@@ -23,7 +23,7 @@ uv sync
 To run the service in development mode:
 
 ```bash
-uv run fastapi dev
+uv run fastapi dev --port 8080
 ```
 
 ## Running the Service (Production)
@@ -31,7 +31,7 @@ uv run fastapi dev
 For production environments, use:
 
 ```bash
-uv run fastapi run
+uv run fastapi run --port 8080
 ```
 
 ## API Endpoints
