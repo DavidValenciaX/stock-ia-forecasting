@@ -2,11 +2,24 @@
 import requests
 import json
 from apscheduler.schedulers.background import BackgroundScheduler
+from pydantic import BaseModel
+from typing import List
+
+class SaleItem(BaseModel):
+    date: str
+    quantity: float
+
+class ProductRequest(BaseModel):
+    product_id: int
+    sales: List[SaleItem]
+    stock: int
 
 external_endpoint = "http://173.212.224.226:3000/api/notifications"
 
 def scheduled_task():
     print("⏰ Ejecutando tarea programada...")
+    # Import here instead of at module level to avoid circular import
+    from main import predict_shortage
 
     response = requests.get(
         "http://173.212.224.226:3000/inventory-transactions/confirmed-sales"
@@ -20,19 +33,16 @@ def scheduled_task():
 
     for product in sales_data:
         try:
-            predict_response = requests.post(
-                "http://localhost:8080/predict-shortage",
-                json={
-                    "product_id": product["product_id"],
-                    "sales": product["sales"],
-                    "stock": product["stock"]
-                }
+            # Crear el objeto ProductRequest para llamar a la función interna
+            product_request = ProductRequest(
+                product_id=product["product_id"],
+                sales=[SaleItem(date=sale["date"], quantity=sale["quantity"]) for sale in product["sales"]],
+                stock=product["stock"]
             )
-            if predict_response.status_code != 200:
-                print(f"❌ Error para producto {product['product_id']}")
-                continue
-
-            result = predict_response.json()
+            
+            # Llamar directamente a la función interna
+            result = predict_shortage(product_request)
+            
             if result.get("shortage_date"):
                 print(f"⚠️ Producto {product['product_id']} en riesgo de escasez.")
 
