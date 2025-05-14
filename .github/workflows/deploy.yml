@@ -40,7 +40,10 @@ jobs:
           cd /home/projects/stock-ia-forecasting
 
           echo "Stopping and removing existing containers (if any)..."
-          docker compose down || true
+          docker compose down -v --remove-orphans || true
+          echo "Attempting to stop container stock-ia-forecasting if it exists..."
+          docker stop stock-ia-forecasting || true
+          echo "Attempting to remove container stock-ia-forecasting if it exists..."
           docker rm -f stock-ia-forecasting || true
 
           echo "Building and starting with Docker Compose..."
