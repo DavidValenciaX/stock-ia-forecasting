@@ -1,5 +1,5 @@
 # ---- Build stage ----
-FROM python:3.13-alpine AS build
+FROM python:3.13-slim-bullseye AS build
 
 # Instala uv
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
@@ -8,17 +8,17 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 WORKDIR /app
 COPY . /app
 
-# Instala las dependencias necesarias para compilar psycopg2
-RUN apk add --no-cache postgresql-dev gcc musl-dev
+# Instala las dependencias necesarias
+RUN apt-get update && apt-get install -y --no-install-recommends libc-dev gcc g++ cmake git musl-dev make bash build-essential
 
 # Instala las dependencias en el entorno virtual
 RUN uv sync --frozen --no-cache
 
 # ---- Runtime stage ----
-FROM python:3.13-alpine
+FROM python:3.13-slim-bullseye
 
-# Instala las dependencias de runtime para PostgreSQL
-RUN apk add --no-cache postgresql-libs
+# Instala las dependencias de runtime
+RUN apt-get update && apt-get install -y --no-install-recommends
 
 # Copia uv y el entorno virtual desde la etapa de build
 COPY --from=build /bin/uv /bin/uvx /bin/

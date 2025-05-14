@@ -10,6 +10,8 @@ This service provides APIs to:
 - Generate recommended replenishment plans
 - Automate inventory monitoring via scheduled tasks
 
+This application uses the new uv package manager.
+
 ## Installing Dependencies
 
 To install dependencies, run:

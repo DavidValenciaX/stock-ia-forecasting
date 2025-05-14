@@ -1,0 +1,53 @@
+name: Deploy to Production Server
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+    - name: Setup known hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -H 173.212.224.226 >> ~/.ssh/known_hosts
+
+    - name: Deploy with Docker Compose
+      env:
+        HOST: 173.212.224.226
+        USER: root
+        DEPLOY_PATH: /home/projects/stock-ia-forecasting
+        IMAGE_NAME: stock-ia-forecasting
+      run: |
+        echo "Deploying to production server..."
+        # Transfer files to the server
+        rsync -avz --exclude '.git' --exclude '.github' --exclude '__pycache__' --exclude '.venv' ./ $USER@$HOST:$DEPLOY_PATH
+
+        # Connect via SSH to build and restart using Docker Compose
+        ssh $USER@$HOST << 'EOF'
+          set -e
+          cd /home/projects/stock-ia-forecasting
+
+          echo "Stopping and removing existing containers (if any)..."
+          docker compose down || true
+          docker rm -f stock-ia-forecasting || true
+
+          echo "Building and starting with Docker Compose..."
+          docker compose up -d --build
+
+          echo "Cleaning up unused images..."
+          docker image prune -f
+
+          echo "Deployment completed successfully!"
+        EOF
